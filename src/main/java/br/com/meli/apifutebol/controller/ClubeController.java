@@ -4,6 +4,7 @@ import br.com.meli.apifutebol.dto.ClubeDto;
 import br.com.meli.apifutebol.dto.RespDto;
 import br.com.meli.apifutebol.service.ClubeService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,7 @@ public class ClubeController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<RespDto> insertClube(@Valid @RequestBody ClubeDto dto) {
         RespDto resp = new RespDto();
         try {
@@ -44,4 +46,6 @@ public class ClubeController {
         }
         return ResponseEntity.ok(resp);
         }
+
+
 }

@@ -3,6 +3,7 @@ package br.com.meli.apifutebol.service;
 import br.com.meli.apifutebol.dto.ClubeDto;
 import br.com.meli.apifutebol.model.Clube;
 import br.com.meli.apifutebol.repository.ClubeRepository;
+import br.com.meli.apifutebol.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,18 +38,34 @@ public class ClubeService {
     }
 
     public ClubeDto insertClube(ClubeDto dto){
+        ClubeDto resp = new ClubeDto();
+        StringUtil valida = new StringUtil();
         Clube c = new Clube();
-        c.setNomeClube(dto.getClubName());
-        c.setEstadoSede(dto.getUf());
-        c.setDataCriacao(dto.getCreatAt());
-        Clube insert = clubeRepository.save(c);
-        ClubeDto resp = new ClubeDto(
-                insert.getId(),
-                insert.getNomeClube(),
-                insert.getEstadoSede(),
-                insert.getDataCriacao().toString(),
-                insert.isStatus()
-        );
+        try{
+            boolean name = valida.isLengthBetween(dto.getClubName(),3,100);
+            if(name== true){
+                c.setNomeClube(dto.getClubName());
+            }
+            boolean date = valida.checkDate(dto.getCreatAt());
+            if(date==true){
+                c.setDataCriacao(dto.getCreatAt());
+            }
+            boolean uf = valida.isUFValid(dto.getUf().toString());
+            if(uf == true){
+                c.setEstadoSede(dto.getUf());
+            }
+            Clube insert = clubeRepository.save(c);
+            resp = new ClubeDto(
+                    insert.getId(),
+                    insert.getNomeClube(),
+                    insert.getEstadoSede(),
+                    insert.getDataCriacao().toString(),
+                    insert.isStatus()
+            );
+        }catch (Exception ex){
+
+        }
+
         return resp;
 
     }

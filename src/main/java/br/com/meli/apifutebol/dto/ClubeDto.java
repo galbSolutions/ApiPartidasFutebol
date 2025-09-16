@@ -1,5 +1,6 @@
 package br.com.meli.apifutebol.dto;
 
+import br.com.meli.apifutebol.utils.Enum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDate;
@@ -7,17 +8,14 @@ import java.time.LocalDate;
 public class ClubeDto {
     private long id;
     private String clubName;
-    private String uf;
+    private Enum.UF uf;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private String creatAt ;
     private boolean status;
-
-    public ClubeDto(){
-
-    }
+    public ClubeDto(){ }
     public ClubeDto(Long id,
                     String clubName,
-                    String uf,
+                    Enum.UF uf,
                     String creatAt,
                     boolean status) {
         this.id = id;
@@ -38,10 +36,10 @@ public class ClubeDto {
     public void setClubName(String clubName) {
         this.clubName = clubName;
     }
-    public String getUf() {
+    public Enum.UF getUf() {
         return uf;
     }
-    public void setUf(String uf) {
+    public void setUf(Enum.UF uf) {
         this.uf = uf;
     }
     public LocalDate getCreatAt() {

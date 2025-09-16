@@ -1,5 +1,6 @@
 package br.com.meli.apifutebol.model;
 
+import br.com.meli.apifutebol.utils.Enum;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -22,7 +23,7 @@ public class Clube {
     private String nomeClube;
 
     @Column(name = "estado_sede", nullable = false, length = 2)
-    private String estadoSede;
+    private Enum.UF estadoSede;
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDate dataCriacao;
@@ -48,11 +49,11 @@ public class Clube {
         this.nomeClube = nomeClube;
     }
 
-    public String getEstadoSede() {
+    public Enum.UF getEstadoSede() {
         return estadoSede;
     }
 
-    public void setEstadoSede(String estadoSede) {
+    public void setEstadoSede(Enum.UF estadoSede) {
         this.estadoSede = estadoSede;
     }
 
