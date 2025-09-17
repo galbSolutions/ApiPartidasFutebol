@@ -1,6 +1,9 @@
 package br.com.meli.apifutebol.utils;
 
+import br.com.meli.apifutebol.dto.ClubeDto;
 import br.com.meli.apifutebol.model.Clube;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.Date;

@@ -22,6 +22,7 @@ public class Clube {
     @Column(name = "nome_clube", nullable = false, length = 100)
     private String nomeClube;
 
+    @Enumerated(EnumType.STRING)//instrui o JPA a ler/gravar o nome do enum (por exemplo “SP”) na coluna VARCHAR(2) ao invés de usar o ordinal (0,1,2…), que geraria esse conflito de tipo Byte.
     @Column(name = "estado_sede", nullable = false, length = 2)
     private Enum.UF estadoSede;
 

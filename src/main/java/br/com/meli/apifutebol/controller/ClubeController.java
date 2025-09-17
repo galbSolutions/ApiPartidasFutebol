@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/clube")
@@ -26,8 +27,7 @@ public class ClubeController {
         return ResponseEntity.ok(clubes);
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping()
     public ResponseEntity<RespDto> insertClube(@Valid @RequestBody ClubeDto dto) {
         RespDto resp = new RespDto();
         try {
@@ -44,8 +44,34 @@ public class ClubeController {
             resp.message = "Erro interno ";
             resp.success = false;
         }
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+    }
+    @GetMapping(params = "id")
+    public ResponseEntity<ClubeDto> getClubById(@RequestParam("id") long id){
+        Optional<ClubeDto> resp = clubeService.getClubeById(id);
+        if(resp.isEmpty()){
+            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(resp.get());
+    }
+    @DeleteMapping(params = "id")
+    public ResponseEntity<ClubeDto>  inativeClube(@RequestParam ("id") long id){
+        Optional<ClubeDto> resp = clubeService.validaClube(id,1);
+        if(resp.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(resp.get());
+
+    }
+    @PutMapping(params = "id")
+    public ResponseEntity<ClubeDto>  ativaClube(@RequestParam ("id") long id){
+        Optional<ClubeDto> resp = clubeService.validaClube(id,2);
+        if(resp.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(resp.get());
+
+    }
 
 
 }
