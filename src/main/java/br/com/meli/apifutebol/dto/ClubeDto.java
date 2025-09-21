@@ -54,4 +54,6 @@ public class ClubeDto {
     public void setStatus(boolean status) {
         this.status = status;
     }
+
+
 }

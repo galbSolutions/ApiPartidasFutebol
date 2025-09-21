@@ -3,22 +3,26 @@ package br.com.meli.apifutebol.service;
 import br.com.meli.apifutebol.dto.ClubeDto;
 import br.com.meli.apifutebol.model.Clube;
 import br.com.meli.apifutebol.repository.ClubeRepository;
+import br.com.meli.apifutebol.utils.Enum;
 import br.com.meli.apifutebol.utils.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
+import org.slf4j.Logger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ClubeService {
     @Autowired
     private final ClubeRepository clubeRepository;
-
     public ClubeService(ClubeRepository clubeRepository) {
         this.clubeRepository = clubeRepository;
     }
@@ -36,7 +40,8 @@ public class ClubeService {
                     ))
                     .collect(Collectors.toList());
         }catch (Exception ex){
-            return Collections.emptyList();
+            log.error("Erro ao buscar clubes", ex);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Filtro inválido",ex);
         }
     }
 
@@ -66,7 +71,8 @@ public class ClubeService {
                     insert.isStatus()
             );
         }catch (Exception ex){
-            // TODO
+            log.error("Erro ao inserir Clubes", ex);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao inserir",ex);
         }
         return resp;
     }
@@ -83,42 +89,51 @@ public class ClubeService {
 
     }
 
-    public Optional<ClubeDto> validaClube(long id, int op){
+    public Optional<ClubeDto> validaClube(long id){
         try{
-            if(op == 1){
-                Clube clube = clubeRepository.findById(id)
-                        .orElseThrow(() ->
-                                new ResponseStatusException(HttpStatus.NOT_FOUND, "Clube não encontrado"));
-                // marca como inativo e salva
-                clube.setStatus(false);
-                clubeRepository.save(clube);
-                return clubeRepository.findById(id)
-                        .map(entity -> new ClubeDto(
-                                entity.getId(),
-                                entity.getNomeClube(),
-                                entity.getEstadoSede(),
-                                entity.getDataCriacao().toString(),
-                                entity.isStatus()
-                        ));
-            }else{
-                Clube clube = clubeRepository.findById(id)
-                        .orElseThrow(() ->
-                                new ResponseStatusException(HttpStatus.NOT_FOUND, "Clube não encontrado"));
-                // marca como inativo e salva
-                clube.setStatus(true);
-                clubeRepository.save(clube);
-                return clubeRepository.findById(id)
-                        .map(entity -> new ClubeDto(
-                                entity.getId(),
-                                entity.getNomeClube(),
-                                entity.getEstadoSede(),
-                                entity.getDataCriacao().toString(),
-                                entity.isStatus()
-                        ));
-            }
-        }catch (Exception ex){
 
+                Clube clube = clubeRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResponseStatusException(HttpStatus.NOT_FOUND, "Clube não encontrado"));
+                // marca como inativo e salva
+                clube.setStatus(!clube.isStatus());
+                clubeRepository.save(clube);
+                return clubeRepository.findById(id)
+                        .map(entity -> new ClubeDto(
+                                entity.getId(),
+                                entity.getNomeClube(),
+                                entity.getEstadoSede(),
+                                entity.getDataCriacao().toString(),
+                                entity.isStatus()
+                        ));
+
+        }catch (Exception ex){
+            throw new IllegalArgumentException();
         }
-        return null;
+    }
+    public Page<ClubeDto> listar(
+            String nome,
+            String estadoStr,
+            Boolean ativo,
+            Pageable pageable
+    ) {
+
+        try{
+            // converte estadoStr em enum (ou null)
+            Enum.UF estado = estadoStr == null
+                    ? null
+                    : Enum.UF.valueOf(estadoStr.toUpperCase());
+
+            // faz a query
+            Page<Clube> pageEntidade = clubeRepository.findByFiltro(nome, estado.toString(), ativo, pageable);
+
+            // mapeia entidade → DTO
+            return pageEntidade.map(c ->
+                    new ClubeDto(c.getId(), c.getNomeClube(), c.getEstadoSede(), c.getDataCriacao().toString(), c.isStatus())
+            );
+        }catch (Exception ex){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro",ex);
+        }
+
     }
 }

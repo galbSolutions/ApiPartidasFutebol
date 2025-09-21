@@ -2,8 +2,11 @@ package br.com.meli.apifutebol.controller;
 
 import br.com.meli.apifutebol.dto.ClubeDto;
 import br.com.meli.apifutebol.dto.RespDto;
+import br.com.meli.apifutebol.model.Clube;
 import br.com.meli.apifutebol.service.ClubeService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,9 +32,10 @@ public class ClubeController {
 
     @PostMapping()
     public ResponseEntity<RespDto> insertClube(@Valid @RequestBody ClubeDto dto) {
+        ClubeDto clubes = new ClubeDto();
         RespDto resp = new RespDto();
         try {
-            ClubeDto clubes = clubeService.insertClube(dto);
+             clubes = clubeService.insertClube(dto);
             if (clubes.getId() != 0) {
                 resp.message = "Cadastramento de Clube";
                 resp.success = true;
@@ -56,21 +60,32 @@ public class ClubeController {
     }
     @DeleteMapping(params = "id")
     public ResponseEntity<ClubeDto>  inativeClube(@RequestParam ("id") long id){
-        Optional<ClubeDto> resp = clubeService.validaClube(id,1);
+        Optional<ClubeDto> resp = clubeService.validaClube(id);
         if(resp.isEmpty()){
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(resp.get());
 
     }
+    //Método opcional
     @PutMapping(params = "id")
     public ResponseEntity<ClubeDto>  ativaClube(@RequestParam ("id") long id){
-        Optional<ClubeDto> resp = clubeService.validaClube(id,2);
+        Optional<ClubeDto> resp = clubeService.validaClube(id);
         if(resp.isEmpty()){
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(resp.get());
 
+    }
+
+    @GetMapping("/filter")
+    public Page<ClubeDto> filter(
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Boolean ativo,
+            Pageable pageable
+    ) {
+        return clubeService.listar(nome, estado, ativo, pageable);
     }
 
 
