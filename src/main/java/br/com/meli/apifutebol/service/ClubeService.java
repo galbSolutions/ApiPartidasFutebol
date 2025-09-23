@@ -117,23 +117,36 @@ public class ClubeService {
             Boolean ativo,
             Pageable pageable
     ) {
+        // prepara nome
+        String nomeParam = (nome == null || nome.isBlank())
+                ? null
+                : nome.trim();
 
-        try{
-            // converte estadoStr em enum (ou null)
-            Enum.UF estado = estadoStr == null
-                    ? null
-                    : Enum.UF.valueOf(estadoStr.toUpperCase());
-
-            // faz a query
-            Page<Clube> pageEntidade = clubeRepository.findByFiltro(nome, estado.toString(), ativo, pageable);
-
-            // mapeia entidade → DTO
-            return pageEntidade.map(c ->
-                    new ClubeDto(c.getId(), c.getNomeClube(), c.getEstadoSede(), c.getDataCriacao().toString(), c.isStatus())
-            );
-        }catch (Exception ex){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro",ex);
+        // converte estadoStr em Enum.UF ou null
+        Enum.UF estadoParam = null;
+        if (estadoStr != null && !estadoStr.isBlank()) {
+            estadoParam = Enum.UF.valueOf(estadoStr.toUpperCase());
         }
 
+        // executa a query passando o enum
+        Page<Clube> page = clubeRepository.findByFiltro(
+                nomeParam,    // será usado no LIKE
+                estadoParam,  // passa o Enum, não String
+                ativo,
+                pageable
+        );
+
+        // mapeia para DTO
+        return page.map(c ->
+                new ClubeDto(
+                        c.getId(),
+                        c.getNomeClube(),
+                        c.getEstadoSede(),
+                        c.getDataCriacao().toString(),
+                        c.isStatus()
+                )
+        );
     }
-}
+
+    }
+

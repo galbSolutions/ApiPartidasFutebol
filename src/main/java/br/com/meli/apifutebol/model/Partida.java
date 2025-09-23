@@ -1,29 +1,31 @@
 package br.com.meli.apifutebol.model;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
-@Entity
 @Table(
-    name = "partida",
-            indexes = {
-@Index(name = "idx_partida_mandante", columnList = "clube_mandante_id"),
-@Index(name = "idx_partida_visitante", columnList = "clube_visitante_id")
-    }
-
-            )
+        name = "partida",
+        indexes = {
+                @Index(name = "idx_partida_mandante", columnList = "clube_mandante_id"),
+                @Index(name = "idx_partida_visitante", columnList = "clube_visitante_id")
+        }
+)
 public class Partida {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // mapear INT UNSIGNED NOT NULL AUTO_INCREMENT
-    @Column(name = "id", nullable = false, columnDefinition = "INT UNSIGNED")
-    private Integer id;
+    @Column(
+            name = "id",
+            nullable = false,
+            columnDefinition = "BIGINT UNSIGNED"
+    )
+    private Long id;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(
             name = "clube_mandante_id",
             nullable = false,
-            columnDefinition = "INT UNSIGNED",
+            columnDefinition = "BIGINT UNSIGNED",
             foreignKey = @ForeignKey(
                     name = "partida_ibfk_1",
                     foreignKeyDefinition =
@@ -39,7 +41,7 @@ public class Partida {
     @JoinColumn(
             name = "clube_visitante_id",
             nullable = false,
-            columnDefinition = "INT UNSIGNED",
+            columnDefinition = "BIGINT UNSIGNED",
             foreignKey = @ForeignKey(
                     name = "partida_ibfk_2",
                     foreignKeyDefinition =
@@ -73,11 +75,11 @@ public class Partida {
             columnDefinition = "DATETIME"
     )
     private LocalDateTime dataHora;
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
