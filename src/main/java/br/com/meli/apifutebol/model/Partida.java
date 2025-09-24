@@ -3,123 +3,70 @@ package br.com.meli.apifutebol.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+@Entity
 @Table(
-        name = "partida",
+        name    = "partida",
         indexes = {
-                @Index(name = "idx_partida_mandante", columnList = "clube_mandante_id"),
-                @Index(name = "idx_partida_visitante", columnList = "clube_visitante_id")
+                @Index(name = "idx_partida_mandante",  columnList = "clube_mandante_id"),
+                @Index(name = "idx_partida_visitante", columnList = "clube_visitante_id"),
+                @Index(name = "idx_partida_estadio",   columnList = "estadio_id")
         }
 )
 public class Partida {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(
-            name = "id",
-            nullable = false,
-            columnDefinition = "BIGINT UNSIGNED"
-    )
     private Long id;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "clube_mandante_id",
-            nullable = false,
-            columnDefinition = "BIGINT UNSIGNED",
-            foreignKey = @ForeignKey(
-                    name = "partida_ibfk_1",
-                    foreignKeyDefinition =
-                            "FOREIGN KEY (clube_mandante_id) " +
-                                    "REFERENCES clube(id) " +
-                                    "ON UPDATE CASCADE " +
-                                    "ON DELETE RESTRICT"
-            )
-    )
+    // já existente
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "clube_mandante_id", nullable = false)
     private Clube clubeMandante;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    // já existente
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "clube_visitante_id", nullable = false)
+    private Clube clubeVisitante;
+
+    // novo relacionamento para estadio
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
-            name = "clube_visitante_id",
+            name = "estadio_id",
             nullable = false,
-            columnDefinition = "BIGINT UNSIGNED",
             foreignKey = @ForeignKey(
-                    name = "partida_ibfk_2",
+                    name = "partida_ibfk_3",
                     foreignKeyDefinition =
-                            "FOREIGN KEY (clube_visitante_id) " +
-                                    "REFERENCES clube(id) " +
+                            "FOREIGN KEY (estadio_id) " +
+                                    "REFERENCES estadio(id) " +
                                     "ON UPDATE CASCADE " +
                                     "ON DELETE RESTRICT"
             )
     )
-    private Clube clubeVisitante;
+    private Estadio estadio;
 
-    @Column(
-            name = "resultado",
-            length = 10,
-            nullable = false,
-            columnDefinition = "VARCHAR(10) COMMENT 'formato “x1x2”'"
-    )
+    @Column(length = 10, nullable = false)
     private String resultado;
 
-    @Column(
-            name = "estadio",
-            length = 100,
-            nullable = false,
-            columnDefinition = "VARCHAR(100)"
-    )
-    private String estadio;
-
-    @Column(
-            name = "data_hora",
-            nullable = false,
-            columnDefinition = "DATETIME"
-    )
+    @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
-    public Long getId() {
-        return id;
-    }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    // getters e setters…
 
-    public Clube getClubeMandante() {
-        return clubeMandante;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setClubeMandante(Clube clubeMandante) {
-        this.clubeMandante = clubeMandante;
-    }
+    public Clube getClubeMandante() { return clubeMandante; }
+    public void setClubeMandante(Clube c) { this.clubeMandante = c; }
 
-    public Clube getClubeVisitante() {
-        return clubeVisitante;
-    }
+    public Clube getClubeVisitante() { return clubeVisitante; }
+    public void setClubeVisitante(Clube c) { this.clubeVisitante = c; }
 
-    public void setClubeVisitante(Clube clubeVisitante) {
-        this.clubeVisitante = clubeVisitante;
-    }
+    public Estadio getEstadio() { return estadio; }
+    public void setEstadio(Estadio e) { this.estadio = e; }
 
-    public String getResultado() {
-        return resultado;
-    }
+    public String getResultado() { return resultado; }
+    public void setResultado(String r) { this.resultado = r; }
 
-    public void setResultado(String resultado) {
-        this.resultado = resultado;
-    }
-
-    public String getEstadio() {
-        return estadio;
-    }
-
-    public void setEstadio(String estadio) {
-        this.estadio = estadio;
-    }
-
-    public LocalDateTime getDataHora() {
-        return dataHora;
-    }
-
-    public void setDataHora(LocalDateTime dataHora) {
-        this.dataHora = dataHora;
-    }
+    public LocalDateTime getDataHora() { return dataHora; }
+    public void setDataHora(LocalDateTime dt) { this.dataHora = dt; }
 }

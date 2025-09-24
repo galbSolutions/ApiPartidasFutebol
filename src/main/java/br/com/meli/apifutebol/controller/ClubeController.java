@@ -19,7 +19,6 @@ import java.util.Optional;
 public class ClubeController {
 
     private final ClubeService clubeService;
-
     public ClubeController(ClubeService clubeService) {
         this.clubeService = clubeService;
     }

@@ -4,6 +4,7 @@ import br.com.meli.apifutebol.utils.Enum;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
+@Entity
 @Table(
         name = "clube",
         uniqueConstraints = @UniqueConstraint(
