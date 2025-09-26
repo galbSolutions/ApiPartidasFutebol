@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class EstadioService{
-    @Autowired
     private final EstadioRepository estadioRepository;
     public EstadioService(EstadioRepository estadioRepository) {
         this.estadioRepository = estadioRepository;
