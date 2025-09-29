@@ -1,6 +1,7 @@
 package br.com.meli.apifutebol.controller;
 
 import br.com.meli.apifutebol.dto.ClubeDto;
+import br.com.meli.apifutebol.dto.ClubeUpdateDto;
 import br.com.meli.apifutebol.dto.RespDto;
 import br.com.meli.apifutebol.model.Clube;
 import br.com.meli.apifutebol.service.ClubeService;
@@ -85,6 +86,16 @@ public class ClubeController {
             Pageable pageable
     ) {
         return clubeService.listar(nome, estado, ativo, pageable);
+    }
+    @PutMapping("/{id}")
+    public ResponseEntity<ClubeDto> atualizarClube(
+            @PathVariable Long id,
+            @RequestBody @Valid ClubeUpdateDto dto
+    ) {
+        // chama o método do service que pode lançar ResponseStatusException
+        ClubeDto atualizado = clubeService.atualizarClube(id, dto);
+        // retorna 200 OK com o corpo JSON do ClubeDto
+        return ResponseEntity.ok(atualizado);
     }
 
 

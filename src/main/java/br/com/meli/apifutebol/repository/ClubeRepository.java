@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ClubeRepository extends JpaRepository<Clube, Long> {
     //Utilizando padrao Query com JPQL
@@ -26,6 +27,7 @@ public interface ClubeRepository extends JpaRepository<Clube, Long> {
             @Param("status") Boolean status,
             Pageable pageable
     );
+    Optional<Clube> findByNomeClubeAndEstadoSede(String nome, Enum.UF estado);
 }
 
 
