@@ -17,6 +17,8 @@ public class PartidaDto {
     private String estadioNome;
     private String resultado;
     private LocalDateTime dataHora;
+    private int golsMandante;
+    private int golsVisitante;
 
     public PartidaDto(){}
     public PartidaDto(
@@ -47,6 +49,7 @@ public class PartidaDto {
         this.estadioNome    = p.getEstadio().getNome();
         this.resultado      = p.getResultado();
         this.dataHora       = p.getDataHora();
+
     }
 
     public Long getId() {
@@ -112,5 +115,18 @@ public class PartidaDto {
         this.dataHora = dataHora;
     }
 
+    public int getGolsMandante() {
+        return golsMandante;
+    }
+    public int getGolsVisitante() {
+        return golsVisitante;
+    }
 
+    public void setGolsMandante(int golsMandante) {
+        this.golsMandante = golsMandante;
+    }
+
+    public void setGolsVisitante(int golsVisitante) {
+        this.golsVisitante = golsVisitante;
+    }
 }

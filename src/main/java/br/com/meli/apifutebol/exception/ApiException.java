@@ -51,4 +51,16 @@ public class ApiException {
                 causa
         );
     }
+    public static ResponseStatusException conflictGenerico(String detalhe) {
+        return new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Conflito de dados: " + detalhe
+        );
+    }
+    public static ResponseStatusException clubeInativo(Long id) {
+        return new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Clube inativo: " + id
+        );
+    }
 }

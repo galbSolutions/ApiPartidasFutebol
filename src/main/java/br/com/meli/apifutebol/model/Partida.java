@@ -50,6 +50,12 @@ public class Partida {
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
 
+    @Column(name="gols_mandante", nullable = false)
+    private int golsMandante;
+
+    @Column(name="gols_visitante", nullable = false)
+    private int golsVisitante;
+
     // getters e setters…
 
     public Long getId() { return id; }

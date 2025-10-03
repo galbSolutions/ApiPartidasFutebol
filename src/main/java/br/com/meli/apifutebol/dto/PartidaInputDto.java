@@ -20,6 +20,9 @@ public class PartidaInputDto {
     @NotNull
     private LocalDateTime dataHora;
 
+    private int golsMandante;
+    private int golsVisitante;
+
     // getters + setters
     public Long getMandanteId() { return mandanteId; }
     public void setMandanteId(Long mandanteId) { this.mandanteId = mandanteId; }
@@ -35,4 +38,20 @@ public class PartidaInputDto {
 
     public LocalDateTime getDataHora() { return dataHora; }
     public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
+
+    public int getGolsVisitante() {
+        return golsVisitante;
+    }
+
+    public void setGolsVisitante(int golsVisitante) {
+        this.golsVisitante = golsVisitante;
+    }
+
+    public int getGolsMandante() {
+        return golsMandante;
+    }
+
+    public void setGolsMandante(int golsMandante) {
+        this.golsMandante = golsMandante;
+    }
 }

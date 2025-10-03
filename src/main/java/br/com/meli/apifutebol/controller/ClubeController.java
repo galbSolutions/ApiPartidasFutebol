@@ -6,13 +6,18 @@ import br.com.meli.apifutebol.dto.RespDto;
 import br.com.meli.apifutebol.model.Clube;
 import br.com.meli.apifutebol.service.ClubeService;
 import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -32,23 +37,8 @@ public class ClubeController {
 
     @PostMapping()
     public ResponseEntity<RespDto> insertClube(@Valid @RequestBody ClubeDto dto) {
-        ClubeDto clubes = new ClubeDto();
-        RespDto resp = new RespDto();
-        try {
-             clubes = clubeService.insertClube(dto);
-            if (clubes.getId() != 0) {
-                resp.message = "Cadastramento de Clube";
-                resp.success = true;
-
-            } else {
-                resp.message = "Cadastramento de Clube";
-                resp.success = false;
-            }
-        } catch (Exception ex) {
-            resp.message = "Erro interno ";
-            resp.success = false;
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+        clubeService.insertClube(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     @GetMapping(params = "id")
     public ResponseEntity<ClubeDto> getClubById(@RequestParam("id") long id){
@@ -79,22 +69,34 @@ public class ClubeController {
     }
 
     @GetMapping("/filter")
-    public Page<ClubeDto> filter(
+    public ResponseEntity<Map<String,Object>> filter(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) Boolean ativo,
-            Pageable pageable
+            @PageableDefault(page = 0, size = 20,
+                    sort = "nomeClube", direction = Sort.Direction.ASC)
+                    Pageable pageable
     ) {
-        return clubeService.listar(nome, estado, ativo, pageable);
+        // busca paginada
+        var page = clubeService.listar(nome, estado, ativo, pageable);
+
+        // monta só os campos que interessam
+        Map<String,Object> resp = new LinkedHashMap<>();
+        resp.put("content",       page.getContent());
+        resp.put("pageNumber",    page.getNumber());
+        resp.put("pageSize",      page.getSize());
+        resp.put("totalElements", page.getTotalElements());
+        resp.put("totalPages",    page.getTotalPages());
+        resp.put("last",          page.isLast());
+
+        return ResponseEntity.ok(resp);
     }
     @PutMapping("/{id}")
-    public ResponseEntity<ClubeDto> atualizarClube(
+    public ResponseEntity<ClubeDto> updateClube(
             @PathVariable Long id,
             @RequestBody @Valid ClubeUpdateDto dto
     ) {
-        // chama o método do service que pode lançar ResponseStatusException
-        ClubeDto atualizado = clubeService.atualizarClube(id, dto);
-        // retorna 200 OK com o corpo JSON do ClubeDto
+        ClubeDto atualizado = clubeService.updateClube(id, dto);
         return ResponseEntity.ok(atualizado);
     }
 

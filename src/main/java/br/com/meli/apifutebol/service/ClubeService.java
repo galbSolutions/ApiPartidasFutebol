@@ -12,6 +12,8 @@ import br.com.meli.apifutebol.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -21,9 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.slf4j.Logger;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -62,17 +62,37 @@ public class ClubeService {
         Clube c = new Clube();
         try {
             boolean name = valida.isLengthBetween(dto.getClubName(), 3, 100);
-            if (name == true) {
-                c.setNomeClube(dto.getClubName());
+            if (!name) {
+                throw ApiException.badRequestGenerico(
+                        "Nome do clube é menor do que 2 letras.",
+                        new IllegalArgumentException(""));
             }
+            c.setNomeClube(dto.getClubName());
             boolean date = valida.checkDate(dto.getCreatAt());
-            if (date == true) {
-                c.setDataCriacao(dto.getCreatAt());
+            if (!date) {
+                throw ApiException.badRequestGenerico(
+                        "Data de criação inválida ou no futuro.",
+                        new IllegalArgumentException(""));
             }
-            boolean uf = valida.isUFValid(dto.getUf().toString());
-            if (uf == true) {
-                c.setEstadoSede(dto.getUf());
+            c.setDataCriacao(dto.getCreatAt());
+
+            if (!valida.isUFValid(dto.getUf().toString())) {
+                throw ApiException.badRequestGenerico(
+                        "UF inválida.",
+                        new IllegalArgumentException("uf não consta nos estados válidos")
+                );
             }
+            c.setEstadoSede(dto.getUf());
+            // Validar duplicidade de Clube + estado CONFLICT
+            Optional<Clube> exists = clubeRepository
+                    .findByNomeClubeAndEstadoSede(
+                            dto.getClubName(),
+                            dto.getUf()
+                    );
+            if (exists.isPresent()) {
+                throw ApiException.nomeEstadoDuplicado(dto.getClubName(), dto.getUf());
+            }
+
             Clube insert = clubeRepository.save(c);
             resp = new ClubeDto(
                     insert.getId(),
@@ -81,9 +101,12 @@ public class ClubeService {
                     insert.getDataCriacao().toString(),
                     insert.isStatus()
             );
-        } catch (Exception ex) {
-            log.error("Erro ao inserir Clubes", ex);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao inserir", ex);
+        }catch (ResponseStatusException ex){
+            throw ex;
+        }
+        catch (Exception ex) {
+            log.error("ERROR: ", ex);
+            throw ApiException.badRequestGenerico("BAD REQUEST dados inválidos",ex);
         }
         return resp;
     }
@@ -119,7 +142,10 @@ public class ClubeService {
                             entity.isStatus()
                     ));
 
-        } catch (Exception ex) {
+        }catch (ResponseStatusException ex) {
+            throw ex;
+        }
+        catch (Exception ex) {
             throw new IllegalArgumentException();
         }
     }
@@ -130,27 +156,58 @@ public class ClubeService {
             Boolean ativo,
             Pageable pageable
     ) {
-        // prepara nome
-        String nomeParam = (nome == null || nome.isBlank())
-                ? null
-                : nome.trim();
+        // 1) Normaliza filtros
+        String nomeParam = (nome   != null && !nome.isBlank())
+                ? nome.trim() : null;
 
-        // converte estadoStr em Enum.UF ou null
         Enum.UF estadoParam = null;
         if (estadoStr != null && !estadoStr.isBlank()) {
-            estadoParam = Enum.UF.valueOf(estadoStr.toUpperCase());
+            try {
+                estadoParam = Enum.UF.valueOf(estadoStr.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "UF inválida. Use: " + Arrays.toString(Enum.UF.values()),
+                        ex
+                );
+            }
         }
+        // 2) Constrói o probe só com os filtros efetivos
+        Clube probe = new Clube();
+        List<String> ignore = new ArrayList<>();
+        ignore.add("id");
+        ignore.add("dataCriacao");
+        if (nomeParam != null) {
+            probe.setNomeClube(nomeParam);
+        } else {
+            ignore.add("nomeClube");
+        }
+        if (estadoParam != null) {
+            probe.setEstadoSede(estadoParam);
+        } else {
+            ignore.add("estadoSede");
+        }
+        if (ativo != null) {
+            probe.setStatus(ativo);
+        } else {
+            // como status é boolean primitivo, se não setarmos
+            // ele ficará false por default → precisamos ignorá-lo
+            ignore.add("status");
+        }
+        // 3) Configura o matcher para ignorar campos nulos e paths específicos
+        ExampleMatcher matcher = ExampleMatcher.matchingAll()
+                .withIgnoreNullValues()                   // ignora campos null
+                .withIgnorePaths(ignore.toArray(new String[0]))
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withIgnoreCase();
 
-        // executa a query passando o enum
-        Page<Clube> page = clubeRepository.findByFiltro(
-                nomeParam,    // será usado no LIKE
-                estadoParam,  // passa o Enum, não String
-                ativo,
-                pageable
-        );
+        Example<Clube> example = Example.of(probe, matcher);
 
-        // mapeia para DTO
-        return page.map(c ->
+        // 4) Executa a query paginada/ordenada
+        Page<Clube> pageEnt = clubeRepository.findAll(example, pageable);
+
+        // 5) Mapeia para ClubeDto e retorna
+        return pageEnt.map(c ->
                 new ClubeDto(
                         c.getId(),
                         c.getNomeClube(),
@@ -162,9 +219,9 @@ public class ClubeService {
     }
 
     @Transactional
-    public ClubeDto atualizarClube(Long id, ClubeUpdateDto dto) {
+    public ClubeDto updateClube(Long id, ClubeUpdateDto dto) {
         try {
-            // ■ Clube existe?
+            // Clube existe?
             Clube clube = clubeRepository.findById(id)
                     .orElseThrow(() -> ApiException.clubeNaoEncontrado(id));
 
