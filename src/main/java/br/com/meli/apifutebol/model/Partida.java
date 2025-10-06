@@ -75,4 +75,20 @@ public class Partida {
 
     public LocalDateTime getDataHora() { return dataHora; }
     public void setDataHora(LocalDateTime dt) { this.dataHora = dt; }
+
+    public int getGolsMandante() {
+        return golsMandante;
+    }
+
+    public void setGolsMandante(int golsMandante) {
+        this.golsMandante = golsMandante;
+    }
+
+    public int getGolsVisitante() {
+        return golsVisitante;
+    }
+
+    public void setGolsVisitante(int golsVisitante) {
+        this.golsVisitante = golsVisitante;
+    }
 }

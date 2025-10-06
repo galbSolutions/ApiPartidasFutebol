@@ -1,8 +1,6 @@
 package br.com.meli.apifutebol.controller;
 
-import br.com.meli.apifutebol.dto.ClubeDto;
-import br.com.meli.apifutebol.dto.ClubeUpdateDto;
-import br.com.meli.apifutebol.dto.RespDto;
+import br.com.meli.apifutebol.dto.*;
 import br.com.meli.apifutebol.model.Clube;
 import br.com.meli.apifutebol.service.ClubeService;
 import jakarta.validation.Valid;
@@ -98,6 +96,21 @@ public class ClubeController {
     ) {
         ClubeDto atualizado = clubeService.updateClube(id, dto);
         return ResponseEntity.ok(atualizado);
+    }
+
+    @GetMapping("/{id}/retrospecto")
+    public ResponseEntity<RetrospectoDto> getRetrospecto(
+            @PathVariable("id") Long clubeId) {
+        RetrospectoDto dto = clubeService.getRetrospecto(clubeId);
+        return ResponseEntity.ok(dto);
+    }
+    @GetMapping("/{idA}/confronto/{idB}")
+    public ResponseEntity<ConfrontoDto> confronto(
+            @PathVariable Long idA,
+            @PathVariable Long idB
+    ) {
+        ConfrontoDto dto = clubeService.getConfrontoDireto(idA, idB);
+        return ResponseEntity.ok(dto);
     }
 
 

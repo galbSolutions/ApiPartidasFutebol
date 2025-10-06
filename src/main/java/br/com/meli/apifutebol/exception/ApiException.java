@@ -63,4 +63,10 @@ public class ApiException {
                 "Clube inativo: " + id
         );
     }
+    public static ResponseStatusException partidaNaoEncontrada(Long id) {
+        return new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Partida não encontrada: " + id
+        );
+    }
 }

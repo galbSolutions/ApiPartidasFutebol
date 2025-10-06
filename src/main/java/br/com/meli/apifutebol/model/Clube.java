@@ -20,7 +20,7 @@ public class Clube {
     @Column(name = "id",
             nullable = false,
             columnDefinition = "BIGINT UNSIGNED")
-    private long id;
+    private Long id;
 
     @Column(name = "nome_clube",
             nullable = false,

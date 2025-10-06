@@ -1,7 +1,6 @@
 package br.com.meli.apifutebol.service;
 
-import br.com.meli.apifutebol.dto.ClubeDto;
-import br.com.meli.apifutebol.dto.ClubeUpdateDto;
+import br.com.meli.apifutebol.dto.*;
 import br.com.meli.apifutebol.exception.ApiException;
 import br.com.meli.apifutebol.model.Clube;
 import br.com.meli.apifutebol.model.Partida;
@@ -274,6 +273,106 @@ public class ClubeService {
                     "Dados inválidos para atualização de clube.", ex
             );
         }
+    }
+    public RetrospectoDto getRetrospecto(Long clubeId) {
+        // 1) verifica existência ou 404
+        Clube clube = clubeRepository.findById(clubeId)
+                .orElseThrow(() -> ApiException.clubeNaoEncontrado(clubeId));
+
+        // 2) busca todas as partidas onde ele é mandante OU visitante
+        List<Partida> jogos = partidaRepository
+                .findByClubeMandanteIdOrClubeVisitanteId(clubeId, clubeId);
+
+        // 3) se não há jogos, retorna tudo zero
+        if (jogos.isEmpty()) {
+            return new RetrospectoDto(clubeId,  0, 0, 0, 0, 0);
+        }
+
+        // 4) conta vitórias, empates, derrotas, soma gols
+        long vitorias   = 0;
+        long empates    = 0;
+        long derrotas   = 0;
+        int  golsFeitos   = 0;
+        int  golsSofridos = 0;
+
+        for (Partida p : jogos) {
+            boolean casa = p.getClubeMandante().getId() == (clubeId);
+            int gf = casa ? p.getGolsMandante() : p.getGolsVisitante();
+            int gs = casa ? p.getGolsVisitante() : p.getGolsMandante();
+
+            golsFeitos   += gf;
+            golsSofridos += gs;
+
+            if (gf > gs)      vitorias++;
+            else if (gf == gs) empates++;
+            else               derrotas++;
+        }
+
+        return new RetrospectoDto(clubeId,
+                vitorias, empates, derrotas,
+                golsFeitos, golsSofridos);
+    }
+
+    /*public AdversarioRetrospectoDto getAdversarioRetrospecto(Long ClubeAId){
+        Clube a = clubeRepository.findById(ClubeAId).orElseThrow(()-> ApiException.clubeNaoEncontrado(ClubeAId));
+    }*/
+
+    public ConfrontoDto getConfrontoDireto(Long clubeAId, Long clubeBId){
+        Clube a = clubeRepository.findById(clubeAId)
+                .orElseThrow(() -> ApiException.clubeNaoEncontrado(clubeAId));
+        Clube b = clubeRepository.findById(clubeBId)
+                .orElseThrow(() -> ApiException.clubeNaoEncontrado(clubeBId));
+
+        //Buscar todas as Partidas entre A e B
+        List<Partida> jogos = partidaRepository.findByClubeMandanteIdAndClubeVisitanteIdOrClubeVisitanteIdAndClubeMandanteId(
+                clubeAId,clubeBId,clubeAId,clubeBId
+        );
+        // 3) mapeia cada Partida para DTO
+        List<PartidaDto> partidaDtos = jogos.stream()
+                .map(PartidaDto::new)
+                .toList();
+// 4) se a lista estiver vazia, retorno retrospecto zerado
+        if (jogos.isEmpty()) {
+            RetrospectoDto zero = new RetrospectoDto(clubeAId, 0,0,0,0,0);
+            RetrospectoDto zeroB = new RetrospectoDto(clubeBId, 0,0,0,0,0);
+            return new ConfrontoDto(clubeAId, clubeBId, zero, zeroB, List.of());
+        }
+
+        // 5) calcula o retrospecto para cada lado
+        long vA = 0, e = 0, dA = 0;
+        long vB = 0, dB = 0;
+        int  gfA = 0, gsA = 0, gfB = 0, gsB = 0;
+
+        for (Partida p : jogos) {
+            boolean aCasa = p.getClubeMandante().getId()==clubeAId;
+            int golsA = aCasa ? p.getGolsMandante() : p.getGolsVisitante();
+            int golsB = aCasa ? p.getGolsVisitante() : p.getGolsMandante();
+
+            gfA += golsA;
+            gsA += golsB;
+            gfB += golsB;
+            gsB += golsA;
+
+            if (golsA > golsB)      vA++;
+            else if (golsA < golsB) dB++;
+            else                    e++;
+        }
+        // partidas empatadas contam para ambos
+        long empatesA = e;
+        long empatesB = e;
+
+        // derrotas de A = total – vitóriasA – empatesA
+        long derrotasA = jogos.size() - vA - empatesA;
+        // vitóriasB já foi contado como golsB>golsA
+        long derrotasB = jogos.size() - vB - empatesB;
+
+        RetrospectoDto retroA = new RetrospectoDto(
+                clubeAId, vA, empatesA, derrotasA, gfA, gsA);
+        RetrospectoDto retroB = new RetrospectoDto(
+                clubeBId, vB, empatesB, derrotasB, gfB, gsB);
+
+        // 6) retorna o ConfrontoDto
+        return new ConfrontoDto(clubeAId, clubeBId, retroA, retroB, partidaDtos);
     }
 }
 
